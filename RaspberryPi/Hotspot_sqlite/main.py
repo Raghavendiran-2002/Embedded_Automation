@@ -10,7 +10,7 @@ from datetime import datetime
 import threading
 from paho.mqtt import client as mqtt
 
-DATABASE_FILE = 'E-Lab.db'
+DATABASE_FILE = 'LiveData.db'
 conn = sqlite3.connect(DATABASE_FILE, check_same_thread=False)
 IP_ADDRESS = "192.168.4.150"
 username = 'elab'
@@ -18,22 +18,18 @@ password = '2024'
 DocID_UID = {}  # key ["deviceUID"] Value ["DocID"]
 
 
-def InsertRealTimeDate(DeviceID, parentNode, targetstate, actualstate, istransient):
-    # Initially Inserts data to sqlite
-    data = (DeviceID, parentNode, targetstate, actualstate, istransient)
-    sql = "INSERT OR IGNORE INTO HomeAutomation (deviceUID,parentEsp,targetState,actualState,isTransient) VALUES (?,?,?,?,?)"
-    try:
-        conn.execute(sql, data)
-    except sqlite3.OperationalError as e:
-        pass
-    # conn.commit()
-
-
-def UpdateReaTimeDate(DeviceID, parentNode, targetstate, actualstate, istransient):
+def UpdateRealTimeData(DeviceID, parentNode, targetstate, actualstate, istransient):
     data = (parentNode, targetstate, actualstate, istransient, DeviceID)
-    sql = "UPDATE HomeAutomation set parentEsp=?, targetState=?, actualState=?, isTransient=?  where deviceUID = ?"
+    sql = "UPDATE LiveData set parentEsp=?, targetState=?, actualState=?, isTransient=?  where deviceUID = ?"
     conn.execute(sql, data)
-    # conn.commit()
+    conn.commit()
+
+
+def UpdateIsTransient(DeviceID, istransient):
+    data = (istransient, DeviceID)
+    sql = "UPDATE LiveData set isTransient=?  where deviceUID = ?"
+    conn.execute(sql, data)
+    conn.commit()
 
 
 def publishChangesToEsp(docs_snapshot):
@@ -42,14 +38,15 @@ def publishChangesToEsp(docs_snapshot):
     for doc in docs_snapshot:
         # doc.document used here as syntax when using changed docs
         # (changed docs only recieved from listener, check on_snapshot code)
-
         docDict = doc.document.to_dict()
-
         jsonDoc = {
             "state": docDict["targetState"], "deviceUID": docDict["deviceUID"], "parentEsp": docDict["parentEsp"]}
-        UpdateReaTimeDate(docDict["deviceUID"], docDict["parentEsp"],
-                          docDict["targetState"], docDict["actualState"], docDict["isTransient"])
-        client.publish(docDict["parentEsp"], json.dumps(jsonDoc))
+        # UpdateIsTransient(docDict["deviceUID"], docDict["isTransient"])
+        testThread2 = threading.Thread(target=UpdateIsTransient, args=(
+            docDict["deviceUID"], docDict["isTransient"]))
+        # threading here as multiple requests get queued waiting for the prev on_snapshot call to complete
+        testThread2.start()
+        client.publish(docDict["parentEsp"], json.dumps(jsonDoc),  qos=1)
 
 
 def DocumentID():
@@ -71,12 +68,10 @@ def publishInitStatesToEsp(docs_snapshot):
         # DocID_UID[docDict["deviceUID"]] = doc.id
         print(docDict)  # Prints Document Data as JSON
         # print(DocID_UID[docDict["deviceUID"]])  # // Prints DocumentID
-        InsertRealTimeDate(docDict["deviceUID"], docDict["parentEsp"],
-                           docDict["targetState"], docDict["actualState"], docDict["isTransient"])
         # UpdateValue(DocID_UID[docDict["deviceUID"]], doc.id,docDict["parentEsp"], docDict["targetState"])
         jsonDoc = {
             "state": docDict["targetState"], "deviceUID": docDict["deviceUID"], "parentEsp": docDict["parentEsp"]}
-        client.publish(docDict["parentEsp"], json.dumps(jsonDoc))
+        client.publish(docDict["parentEsp"], json.dumps(jsonDoc),  qos=1)
         # InsertValue(docDict["deviceUID"], DocID_UID[docDict["deviceUID"]],
         #             docDict["parentEsp"], docDict["targetState"])
 
@@ -89,10 +84,17 @@ def on_snapshot(docs_snapshot, changes, read_time):
     testThread.start()
 
 
-def getFirebaseDocsOnStartup(parentEsp):
+def getFirebaseDocsOnStartupIndividualESP(parentEsp):
     # only isTransient false docs here as snapshot listener will take care of isTransient true docs
     snapshot = db.collection("Relay12345").where(
         u'isTransient', u'==', False).where(u'parentEsp', u'==', parentEsp).get()
+    publishInitStatesToEsp(snapshot)
+
+
+def getFirebaseDocsOnStartup():
+    # only isTransient false docs here as snapshot listener will take care of isTransient true docs
+    snapshot = db.collection("Relay12345").where(
+        u'isTransient', u'==', False).get()
     # snapshot = db.collection("Relay12345").where(
     #     u'isTransient', u'==', True).get()  # Modified Here
     publishInitStatesToEsp(snapshot)
@@ -105,7 +107,7 @@ def mqtt_on_connection_init(client, userdata, flags, rc):
 def on_message_recieved(client, userdata, msg):
     # when esp32 restart. It get previous data from cloud
     if((msg.topic) == "req"):
-        getFirebaseDocsOnStartup(msg.payload.decode())
+        getFirebaseDocsOnStartupIndividualESP(msg.payload.decode())
     elif(msg.topic == "controller/response"):
         # print(DocID_UID)
         # json.loads - convert JSON string to python dict
@@ -114,8 +116,12 @@ def on_message_recieved(client, userdata, msg):
         # print(DocID_UID[responseDict["deviceUID"]])
         db.collection("Relay12345").document(DocID_UID[responseDict["deviceUID"]]).update(
             {'isTransient': False, 'actualState': responseDict['state']})
-        UpdateReaTimeDate(responseDict["deviceUID"], responseDict["parentEsp"],
-                          responseDict["state"], responseDict["state"], False)
+        testThread1 = threading.Thread(target=UpdateRealTimeData, args=(responseDict["deviceUID"], responseDict["parentEsp"],
+                                                                        responseDict["state"], responseDict["state"], False))
+
+        testThread1.start()
+        # UpdateReaTimeDate(responseDict["deviceUID"], responseDict["parentEsp"],
+        #                   responseDict["state"], responseDict["state"], False)
         print("response",  json.loads(msg.payload.decode()))
 
 # ******************************main******************************
@@ -132,7 +138,7 @@ client.subscribe("req")
 cred = credentials.Certificate("IOTSHA.json")
 firebase_admin.initialize_app(cred)
 db = firestore.client()
-DocumentID()
+DocumentID()  # Stores DocID
 # below query fetches isTransient true docs to be published
 # thus, to fetch all deviceDocs on startup, getFirebaseDocsOnStartup is used
 # this is done so as to prevent a response doc (where isTransient will be false) from triggering the listener
@@ -140,7 +146,7 @@ db.collection(u'Relay12345').where(
     u'isTransient', u'==', True).on_snapshot(on_snapshot)
 # positioning getFirebaseDocsOnStartup() below on_snapshot as on_snapshot's already threaded (right?)
 # and thus both can run in parallel
-
+# getFirebaseDocsOnStartup()
 
 client.on_connect = mqtt_on_connection_init
 client.on_message = on_message_recieved
