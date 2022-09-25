@@ -25,5 +25,7 @@ STEP 1: Initialize RaspberryPi Hotspot: https://github.com/RaspberryConnect/Auto
                https://www.ionos.com/digitalguide/server/configuration/provide-raspberry-pi-with-a-static-ip-address/
 
 STEP 2:
+  python3 isTransient-False.py
   python3 InitStatesToLocalDB.py
+  python3 DocID-DeviceID-DB.py
   python3 main.py
