@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "iot-smart-home-automatio-399f1",
+  "private_key_id": "067b5f82e2b49200684f15d999f06a4b517749cd",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDUDhaOWmMwm6UE\nKjpHUeTJ0W+qhAZxDahcmbH+lplAFjPckavoQ2Xyif/jLJKHdLXgDniCEWMBb0TC\nS6aSYbMniygzWVlPVXGu08MOK3wWuIP3woopDjfjgsKawcd+PhpvI8DeEWQJ9qWv\n1DYWmpfysFJEZh4DaHKQtwveRysZMrEAKzUv8P7PLAL/xcux1nPuy0DTVkYmnJCb\nhmmQXd5nUd3qRCIQzJx+9aOkpWv9n7SDf8SNUh2i2lC7/DYV5ZjZgxFXKa+PmRrr\np/NH1ukb71MYxPPH3Loag6vZ6N6flwuLzBAqdpZ176rtf9l8TA92kKKoTfAIKqXI\nNjfp+fnBAgMBAAECggEAB7hjldcwmUpxXY90A7i1jat0V07rNR58LLLjyhMNjUnB\npZwgGBqsEYJ4sHqk8w2KuZeNR57+bcTxSembLOUlsqDcW9I68Cp6MxU+mrt2jxU0\nqMaKZShBXKUcFKpNawkzySwSD4OukrZKHfap6XTDZ3CH7jmRiio5UY94fSU2Knqf\nAhl2TM6dLtGdHH0RECuwt48IE0Zz8Ps9q/MUeS5CCxfOUmdwnd27oYDkgBa42ilL\nrWrZcBfxCSfe6PDIUlLSjZwGL7syiSMsS23qvyQu/pHz7xWVlpG1CgFX+N7NY/Fg\nLzX1NtdqtO7fCRN5pd/pTkwzP/j7rz7vOVHQvELJYQKBgQDv3A4V5WibaQ6YsaTx\nhdlT1emMp55K1xuePJvyfIA0DLQpCgDzAL4s0kg+Zay7ZZqz0z/0bC22QHc8whh5\nHeMbuPBr2+L5zOfBqUcLaDJ/Vmy/6ZNfdxK8FrPEPOy+HcIjmnyuctuDU9m2SIcf\nyYXGhBhG+ZKSQ66g/zhy65xz5QKBgQDiUw6zwVCY5DSZEuI90jYcGcRYS6Kbc6RI\ngZkXjyyAXWv8T3FsuRynHpDa8qmfHh6OPPXnawargTCku+hS2FfMsSQoMKqtkgNh\nkEAOK7ha4mCdzWUB87wWFEtLKGHP9TI8pAtQCRSUD6090taHVzGqWKpnrkcZE2Kl\nslktRhaIrQKBgQDtNMaJSPKGnwLcZvIkGKawjiAGBc45XTnm5zGiQRXYY6fX3hjK\nOLXaRatEafDE8tpndEcPRdx/HInPAHSLcs8in2bEhBSXzdh0YR/tXAJ0g9fQgwJH\nqs5QTHNDYq0N5wgThbhAHT6RRd9MsbVP7k/p3sDTkAUvuNd+SGhe3js/MQKBgAbh\nD2lXTuPWy+J7OHU4lnx0LAujAOZItY2eotCcgXXFYSriH0h2t/A8dZqyFYXInJUm\nNTM7hZBg9OGM9JrQCJsoJzkxgX6VGZU1lTzZB1l72APz4kYU6nqhU0iNiauQgF5n\nfhCIth9p+pIOfobOl6vd1hAgs/iHJlBzA1Lk9nphAoGAE5TqKwQEOelqexpvpol4\nic5mSjnb3I1WyMjRELYwq0l78Cazl2FFY6i2Bzh0I3GGF8VaMR5gFByGoDYfqVGG\nwZSox9py4jW4xPIfPiXgGqRTJY7KWChV9WlL5112MVopAOO6pLhBdGYt+gsPo1LB\nfkVngLoPtmJ4CSOwEUfT5sI=\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-452ox@iot-smart-home-automatio-399f1.iam.gserviceaccount.com",
+  "client_id": "101870249589615713944",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-452ox%40iot-smart-home-automatio-399f1.iam.gserviceaccount.com"
+}
