@@ -7,6 +7,8 @@ import json
 import sqlite3
 import threading
 from paho.mqtt import client as mqtt
+import urllib.request
+
 
 DATABASE_FILE = 'LiveData.db'
 conn = sqlite3.connect(DATABASE_FILE, check_same_thread=False)
@@ -23,6 +25,15 @@ client.connect(IP_ADDRESS, 1883, 60)
 cred = credentials.Certificate("IOTSHA.json")
 firebase_admin.initialize_app(cred)
 db = firestore.client()
+
+
+def internetConnectionCheck(host='https://google.com'):
+    # Checks Internet Connection
+    try:
+        urllib.request.urlopen(host)
+        return True
+    except:
+        return False
 
 
 def updateRealTimeData(DeviceID, parentNode, targetstate, actualstate, istransient):
@@ -123,7 +134,7 @@ def on_message_recieved(client, userdata, msg):
 
         updateDataThread = threading.Thread(target=updateRealTimeData, args=(responseDict["deviceUID"], responseDict["parentEsp"],
                                                                              responseDict["state"], responseDict["state"], False), daemon=True)
-        updateDataThread.start()
+        updateDataThread.start()  # 'conn.commit()' to avoid sqlException
         # print("response",  json.loads(msg.payload.decode()))
 
 
@@ -142,7 +153,7 @@ def onTransientListener():
 
 client.subscribe("controller/response")
 client.subscribe("req")
-
+print("Internet Connected" if internetConnectionCheck() else "No Internet!")
 fetchdocumentID()  # Stores DocID
 
 onTransientListener()
@@ -150,4 +161,5 @@ client.on_connect = mqtt_on_connection_init
 client.on_message = on_message_recieved
 
 client.loop_forever()
+
 conn.close()
