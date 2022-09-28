@@ -124,7 +124,7 @@ def on_message_recieved(client, userdata, msg):
     if((msg.topic) == "req"):
         onTransientListener()
         getFirebaseDocsOnStartupIndividualESP(msg.payload.decode())
-    elif(msg.topic == "controller/response"):
+    elif(msg.topic == "controller/response" and len(msg.payload.decode()) >= 35):
         # json.loads - convert JSON string to python dict
         responseDict = json.loads(msg.payload.decode())
         print("{} : {}".format(
@@ -136,6 +136,12 @@ def on_message_recieved(client, userdata, msg):
                                                                              responseDict["state"], responseDict["state"], False), daemon=True)
         updateDataThread.start()  # 'conn.commit()' to avoid sqlException
         # print("response",  json.loads(msg.payload.decode()))
+    elif((msg.topic) == "local/response"):
+        # This condition is trigger when manual switch is used
+        x = json.loads(msg.payload.decode())
+        db.collection("Relay12345").document(DocID_UID[x["deviceUID"]]).update(
+            {'targetState': x['state'], 'actualState': x['state']})
+        print(x["deviceUID"],  " : ", {x['state']})
 
 
 def onTransientListener():
@@ -153,6 +159,7 @@ def onTransientListener():
 
 client.subscribe("controller/response")
 client.subscribe("req")
+client.subscribe("local/response")
 print("Internet Connected" if internetConnectionCheck() else "No Internet!")
 fetchdocumentID()  # Stores DocID
 
