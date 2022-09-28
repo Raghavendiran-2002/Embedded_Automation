@@ -2,6 +2,7 @@
 #include <EEPROM.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
+#include <ezButton.h>
 
 // #define WIFISSID "Raghavendiran"
 //#define PWD "10267042"
@@ -27,6 +28,20 @@ IPAddress secondaryDNS(8, 8, 4, 4);
 WiFiClient espClient;
 PubSubClient client(espClient);
 
+ezButton SwitchPin1(32);
+ezButton SwitchPin2(33);
+ezButton SwitchPin3(34);
+ezButton SwitchPin4(35);
+int r1 = LOW;
+int r2 = LOW;
+int r3 = LOW;
+int r4 = LOW;
+
+
+#define RelayPin1 2  //D1
+#define RelayPin2 4  //D2
+#define RelayPin3 12  //D5
+#define RelayPin4 14  //D6
 
 
 void callback(char *topic, byte *payload, unsigned int length){
@@ -42,7 +57,6 @@ void callback(char *topic, byte *payload, unsigned int length){
     message[length] = '\0';
     Serial.println(message);
     client.publish("controller/response", message);
-
     DynamicJsonDocument doc(64); //32 bytes calculated for worst case without any overhead
                                //for particular use case using ArduinoJson Assistant
     deserializeJson(doc, message);
@@ -91,7 +105,76 @@ void callback(char *topic, byte *payload, unsigned int length){
     }
   }
 }
+void PublishLocal(){
+  DynamicJsonDocument doc(1024);
+  doc["parentEsp"] = "esp1";
 
+  if(SwitchPin1.isPressed()){
+    doc["deviceUID"]   = "e1r1";
+    r1 = !r1;
+    if(r1==0){
+      doc["state"] = false;
+    }
+    else{
+      doc["state"] = true;
+    }
+    digitalWrite(RelayPin1, r1);
+    char message[100];
+    serializeJson(doc, message);
+    client.publish("local/response", message);
+    serializeJson(doc, Serial);
+  }
+  if(SwitchPin2.isPressed()){
+    doc["deviceUID"]   = "e1r2";
+    r2 = !r2;
+    if(r2==0){
+      doc["state"] = false;
+    }
+    else{
+      doc["state"] = true;
+    }
+    digitalWrite(RelayPin2, r2);
+    char message[100];
+    serializeJson(doc, message);
+    client.publish("local/response", message);
+    serializeJson(doc, Serial);
+  }
+  if(SwitchPin3.isPressed()){
+    doc["deviceUID"]   = "e1r3";
+    r3 = !r3;
+    if(r3==0){
+      doc["state"] = false;
+    }
+    else{
+      doc["state"] = true;
+    }
+    digitalWrite(RelayPin3, r3);
+    char message[100];
+    serializeJson(doc, message);
+    client.publish("local/response", message);
+    serializeJson(doc, Serial);
+  }
+  if(SwitchPin4.isPressed()){
+    doc["deviceUID"]   = "e1r4";
+    r4 = !r4;
+    if(r4==0){
+      doc["state"] = false;
+    }
+    else{
+      doc["state"] = true;
+    }
+    digitalWrite(RelayPin4, r4);
+    char message[100];
+    serializeJson(doc, message);
+    client.publish("local/response", message);
+    serializeJson(doc, Serial);
+  }
+
+
+  // serializeJson(doc, Serial); // Prints JSON
+
+
+}
 
 void reconnect()
 {
@@ -126,6 +209,11 @@ void setup(){
   digitalWrite(4, HIGH);
   digitalWrite(12, HIGH);
   digitalWrite(14, HIGH);
+  SwitchPin1.setDebounceTime(50);
+  SwitchPin2.setDebounceTime(50);
+  SwitchPin3.setDebounceTime(50);
+  SwitchPin4.setDebounceTime(50);
+
   Serial.begin(115200);
   if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
     Serial.println("STA Failed to configure");
@@ -148,9 +236,16 @@ void setup(){
 
 void loop()
 {
+  SwitchPin1.loop();
+  SwitchPin2.loop();
+  SwitchPin3.loop();
+  SwitchPin4.loop();
+
+
   if (!client.connected())
   {
     reconnect();
   }
+  PublishLocal();
   client.loop();
 }
