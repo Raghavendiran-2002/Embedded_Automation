@@ -1,18 +1,34 @@
 #include <PubSubClient.h>
 #include <WiFi.h>
 
-#define WIFISSID "fast"
-#define PWD "qwertyuiop"
+#define WIFISSID "RPiHotspot"
+#define PWD "1234567890"
 
-const char *mqtt_server = "192.168.100.238";
+const char *mqtt_server = "192.168.4.150";
 const char *device_id = "esp32";
+
+#define Mqtt_username "elab"
+#define Mqtt_password "2024"
+
+// it wil set the static IP address to 192, 168, 1, 184
+IPAddress local_IP(192, 168, 4, 153);
+//it wil set the gateway static IP address to 192, 168, 1,1
+IPAddress gateway(192, 168, 4, 1);
+// Following three settings are optional
+IPAddress subnet(255, 255, 255, 0);
+IPAddress primaryDNS(8, 8, 8, 8);
+IPAddress secondaryDNS(8, 8, 4, 4);
+
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 
 void setup()
 {
-    Serial.begin(9600);
+    Serial.begin(115200);
+    if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
+    Serial.println("STA Failed to configure");
+    }
     WiFi.begin(WIFISSID, PWD);
     Serial.print("Connecting to Wi-Fi");
     while (WiFi.status() != WL_CONNECTED)
@@ -96,7 +112,7 @@ void reconnect()
     while (!client.connected())
     {
         Serial.print("Attempting MQTT connection...");
-        if (client.connect(device_id, "", ""))
+        if (client.connect(device_id, Mqtt_username, Mqtt_password))
         {
             Serial.println("connected");
             client.publish("initi/msg", "here");
